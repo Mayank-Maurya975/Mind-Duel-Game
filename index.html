@@ -1,0 +1,1194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#3b82f6">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Mind Duel">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>Mind Duel - Cross-Device Multiplayer</title>
+    
+    <!-- PWA Icons -->
+    <link rel="icon" type="image/png" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%233b82f6'/%3E%3Ctext x='50' y='70' text-anchor='middle' fill='white' font-size='50' font-family='Arial'%3E🎯%3C/text%3E%3C/svg%3E">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%233b82f6'/%3E%3Ctext x='50' y='70' text-anchor='middle' fill='white' font-size='50' font-family='Arial'%3E🎯%3C/text%3E%3C/svg%3E">
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            transition: background-color 0.3s ease, color 0.2s ease, border-color 0.3s ease;
+        }
+
+        /* Light Mode (Default) */
+        :root {
+            --bg-primary: #f5f7fa;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --text-primary: #1a2a3a;
+            --text-secondary: #4a5568;
+            --accent: #3b82f6;
+            --accent-dark: #2563eb;
+            --accent-light: #60a5fa;
+            --border: #e2e8f0;
+            --border-dark: #cbd5e0;
+            --success: #48bb78;
+            --error: #f56565;
+            --info: #4299e1;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --input-bg: #ffffff;
+            --card-bg: #ffffff;
+        }
+
+        /* Dark Mode - OLED Black */
+        body.dark {
+            --bg-primary: #000000;
+            --bg-secondary: #0a0a0a;
+            --bg-card: #0a0a0a;
+            --text-primary: #ffffff;
+            --text-secondary: #a0aec0;
+            --accent: #3b82f6;
+            --accent-dark: #2563eb;
+            --accent-light: #60a5fa;
+            --border: #2a2a2a;
+            --border-dark: #3a3a3a;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+            --input-bg: #1a1a1a;
+            --card-bg: #0a0a0a;
+        }
+
+        body {
+            background: var(--bg-primary);
+            font-family: 'Segoe UI', 'Poppins', system-ui, -apple-system, 'Roboto', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            color: var(--text-primary);
+        }
+
+        .game-container {
+            max-width: 900px;
+            width: 100%;
+            background: var(--bg-secondary);
+            border-radius: 48px;
+            padding: 24px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid var(--border);
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, var(--accent), #1e40af);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .install-btn {
+            background: var(--accent);
+            border: none;
+            border-radius: 40px;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: white;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .install-btn:hover {
+            transform: scale(1.02);
+            background: var(--accent-dark);
+        }
+
+        .theme-toggle {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 40px;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            color: var(--text-primary);
+            transition: all 0.2s;
+        }
+
+        .mode-bar {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .mode-btn {
+            flex: 1;
+            text-align: center;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 12px 0;
+            border-radius: 60px;
+            font-weight: bold;
+            font-size: 1rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .mode-btn.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+            box-shadow: var(--shadow);
+        }
+
+        .connection-panel {
+            background: var(--bg-card);
+            border-radius: 32px;
+            padding: 24px;
+            margin-bottom: 20px;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+
+        .connection-status {
+            font-size: 0.9rem;
+            padding: 12px;
+            border-radius: 40px;
+            background: var(--bg-primary);
+            margin-bottom: 20px;
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+        }
+
+        .connection-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .peer-btn {
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            padding: 12px 24px;
+            border-radius: 40px;
+            color: var(--text-primary);
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .peer-btn:active { transform: scale(0.96); }
+        .peer-btn.primary { 
+            background: var(--accent); 
+            color: white;
+            border-color: var(--accent);
+        }
+
+        .peer-id-box {
+            background: var(--bg-primary);
+            padding: 20px;
+            border-radius: 32px;
+            margin-top: 16px;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+
+        .game-code-display {
+            background: var(--accent) !important;
+            color: white !important;
+            padding: 15px 25px;
+            border-radius: 20px;
+            font-size: 2rem;
+            font-weight: bold;
+            letter-spacing: 4px;
+            font-family: monospace;
+            display: inline-block;
+            margin: 10px 0;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .game-panel { display: none; }
+        .game-panel.active { display: block; }
+
+        .game-layout {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .game-main {
+            flex: 2;
+            min-width: 250px;
+        }
+
+        .history-panel {
+            flex: 1;
+            min-width: 200px;
+            background: var(--bg-card);
+            border-radius: 32px;
+            padding: 20px;
+            border: 1px solid var(--border);
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .history-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--accent);
+            color: var(--accent);
+            text-align: center;
+        }
+
+        .history-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .history-item {
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            background: var(--bg-primary);
+            border-radius: 20px;
+            font-size: 0.85rem;
+            border-left: 3px solid var(--accent);
+            color: var(--text-secondary);
+        }
+
+        .history-item.my-guess {
+            border-left-color: var(--success);
+        }
+
+        .history-item.opponent-guess {
+            border-left-color: var(--error);
+        }
+
+        .history-item .guess-number {
+            font-weight: bold;
+            color: var(--text-primary);
+        }
+
+        .clear-history {
+            width: 100%;
+            padding: 8px;
+            margin-top: 12px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .player-view {
+            background: var(--bg-card);
+            border-radius: 32px;
+            padding: 20px;
+            margin-bottom: 16px;
+            border: 1px solid var(--border);
+            transition: all 0.2s;
+        }
+
+        .player-view.my-turn {
+            border: 2px solid var(--accent);
+            background: var(--bg-primary);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
+
+        .player-title {
+            font-size: 1.4rem;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 16px;
+            color: var(--accent);
+        }
+
+        .secret-section {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .secret-input {
+            width: 120px;
+            padding: 12px;
+            font-size: 1.2rem;
+            text-align: center;
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            border-radius: 60px;
+            color: var(--text-primary);
+            font-weight: bold;
+            margin: 8px;
+        }
+
+        .secret-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .secret-display {
+            font-size: 2rem;
+            background: var(--bg-primary);
+            display: inline-block;
+            padding: 8px 24px;
+            border-radius: 60px;
+            letter-spacing: 6px;
+            color: var(--accent);
+            border: 1px solid var(--border);
+        }
+
+        .guess-section {
+            text-align: center;
+            margin-top: 16px;
+        }
+
+        .guess-input {
+            width: 80%;
+            padding: 14px;
+            font-size: 1.2rem;
+            text-align: center;
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            border-radius: 60px;
+            color: var(--text-primary);
+            margin: 10px 0;
+        }
+
+        .action-btn {
+            background: var(--accent);
+            border: none;
+            padding: 12px 28px;
+            border-radius: 60px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            margin: 5px;
+            transition: all 0.2s;
+            color: white;
+        }
+
+        .action-btn:hover { transform: scale(1.02); background: var(--accent-dark); }
+        .action-btn:active { transform: scale(0.96); }
+        .action-btn:disabled {
+            background: var(--border);
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            color: var(--text-secondary);
+        }
+
+        .feedback {
+            background: var(--bg-primary);
+            border-radius: 40px;
+            padding: 12px;
+            margin-top: 12px;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+
+        .status-msg {
+            text-align: center;
+            background: var(--bg-primary);
+            padding: 12px;
+            border-radius: 40px;
+            margin: 15px 0;
+            font-weight: bold;
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .reset-btn {
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            padding: 12px;
+            width: 100%;
+            border-radius: 60px;
+            font-weight: bold;
+            color: var(--text-primary);
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.2s;
+        }
+
+        .install-banner {
+            background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+            border-radius: 40px;
+            padding: 12px 20px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            animation: slideDown 0.5s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .install-banner-text {
+            color: white;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .install-banner-btn {
+            background: white;
+            color: var(--accent);
+            border: none;
+            padding: 8px 20px;
+            border-radius: 40px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .info-text {
+            font-size: 0.7rem;
+            text-align: center;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 650px) {
+            .game-layout { flex-direction: column; }
+            .history-panel { max-height: 250px; }
+            .game-container { padding: 16px; }
+            .player-title { font-size: 1.2rem; }
+            .game-code-display { font-size: 1.3rem; letter-spacing: 3px; padding: 10px 15px; }
+        }
+    </style>
+</head>
+<body>
+<div class="game-container">
+    <div class="header">
+        <div class="logo">🎯 Mind Duel</div>
+        <div style="display: flex; gap: 10px;">
+            <button class="install-btn" id="installBtn" style="display: none;">📲 Install App</button>
+            <button class="theme-toggle" id="themeToggle">🌙 Dark Mode</button>
+        </div>
+    </div>
+
+    <!-- Install Banner for Chrome -->
+    <div id="installBanner" class="install-banner" style="display: none;">
+        <span class="install-banner-text">📱 Install Mind Duel on your home screen for a better experience!</span>
+        <button class="install-banner-btn" id="bannerInstallBtn">Install</button>
+    </div>
+
+    <div class="mode-bar">
+        <button class="mode-btn active" data-mode="online">📱 ONLINE 2P</button>
+        <button class="mode-btn" data-mode="ai">🤖 vs COMPUTER</button>
+    </div>
+
+    <div id="onlinePanel" class="connection-panel">
+        <div class="connection-status" id="connectionStatus">🔌 Not connected. Create or join a game.</div>
+        <div class="connection-buttons">
+            <button class="peer-btn primary" id="createGameBtn">🎮 Create Game (Player 1)</button>
+            <button class="peer-btn" id="joinGameBtn">🔗 Join Game (Player 2)</button>
+        </div>
+        <div id="peerIdDisplay" class="peer-id-box" style="display: none;"></div>
+        <div id="joinSection" style="display: none; margin-top: 15px;">
+            <input type="text" id="remotePeerId" placeholder="Enter 8-Character Code (e.g., A3F9K2B7)" class="secret-input" style="width: 80%; text-align: center; text-transform: uppercase;">
+            <button class="action-btn" id="connectBtn" style="width: 80%; margin-top: 10px;">🔗 Connect</button>
+        </div>
+    </div>
+
+    <div id="gamePlayArea" class="game-panel">
+        <div class="game-layout">
+            <div class="game-main">
+                <div class="player-view" id="myPlayerView">
+                    <div class="player-title" id="myPlayerTitle">🧑 MY ROLE</div>
+                    <div class="secret-section">
+                        <div id="mySecretArea">
+                            <input type="number" id="mySecretInput" class="secret-input" placeholder="1-100" min="1" max="100">
+                            <button class="action-btn" id="setSecretBtn">🔒 Set My Secret</button>
+                        </div>
+                        <div id="mySecretDisplay" style="display: none;">
+                            <span class="secret-display">●●●●●</span>
+                            <div style="font-size: 0.8rem; margin-top: 5px;">Your number is set!</div>
+                        </div>
+                    </div>
+                    <div class="guess-section">
+                        <input type="number" id="guessInput" class="guess-input" placeholder="Guess opponent's number" min="1" max="100" disabled>
+                        <button class="action-btn" id="guessBtn" disabled>🎯 GUESS</button>
+                        <div class="feedback" id="myFeedback">Waiting for game to start...</div>
+                    </div>
+                </div>
+                <div class="player-view" id="opponentView">
+                    <div class="player-title" id="opponentTitle">👤 OPPONENT</div>
+                    <div class="secret-section">
+                        <div class="secret-display" style="background: var(--bg-primary);">❓ Not set</div>
+                    </div>
+                    <div class="guess-section">
+                        <div class="feedback" id="opponentFeedback">Waiting for opponent...</div>
+                    </div>
+                </div>
+                <div class="status-msg" id="gameStatusMsg">⚡ Set your secret number to begin!</div>
+                <button class="reset-btn" id="resetOnlineGame">🔄 New Game / Reset</button>
+            </div>
+            
+            <div class="history-panel">
+                <div class="history-title">📜 GUESS HISTORY</div>
+                <ul class="history-list" id="historyList">
+                    <li style="text-align: center; color: var(--text-muted);">No guesses yet</li>
+                </ul>
+                <button class="clear-history" id="clearHistoryBtn">🗑️ Clear History</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="aiPanel" class="game-panel">
+        <div class="game-layout">
+            <div class="game-main">
+                <div class="player-view">
+                    <div class="player-title">🧑 YOU</div>
+                    <div class="secret-section">
+                        <input type="number" id="aiSecretInput" class="secret-input" placeholder="Your secret 1-100">
+                        <button class="action-btn" id="aiSetSecret">Set Secret</button>
+                        <div id="aiSecretDisplay" style="display: none;"><span class="secret-display">●●●●●</span></div>
+                    </div>
+                    <div class="guess-section">
+                        <input type="number" id="aiGuessInput" class="guess-input" placeholder="Guess Computer's number" disabled>
+                        <button class="action-btn" id="aiGuessBtn" disabled>Guess</button>
+                        <div class="feedback" id="aiMyFeedback"></div>
+                    </div>
+                </div>
+                <div class="player-view">
+                    <div class="player-title">🤖 COMPUTER</div>
+                    <div class="secret-section"><span class="secret-display">●●●●●</span></div>
+                    <div class="feedback" id="aiOpponentFeedback">Computer ready</div>
+                </div>
+                <div class="status-msg" id="aiStatusMsg"></div>
+                <button class="reset-btn" id="resetAiGame">New Game</button>
+            </div>
+            <div class="history-panel">
+                <div class="history-title">📜 GUESS HISTORY</div>
+                <ul class="history-list" id="aiHistoryList">
+                    <li style="text-align: center;">No guesses yet</li>
+                </ul>
+                <button class="clear-history" id="clearAiHistoryBtn">🗑️ Clear History</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="info-text">
+        🚀 Crafted by Mayank | Let the mind games begin!<br>
+        💡 Tip: Click "Install App" to add to home screen for quick access!
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
+<script>
+    // PWA Installation
+    let deferredPrompt;
+    const installBtn = document.getElementById('installBtn');
+    const installBanner = document.getElementById('installBanner');
+    const bannerInstallBtn = document.getElementById('bannerInstallBtn');
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        installBtn.style.display = 'flex';
+        installBanner.style.display = 'flex';
+        
+        installBtn.onclick = () => {
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then((choiceResult) => {
+                if (choiceResult.outcome === 'accepted') {
+                    console.log('User accepted install');
+                    installBanner.style.display = 'none';
+                }
+                deferredPrompt = null;
+            });
+        };
+        
+        bannerInstallBtn.onclick = () => {
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then((choiceResult) => {
+                if (choiceResult.outcome === 'accepted') {
+                    console.log('User accepted install');
+                    installBanner.style.display = 'none';
+                }
+                deferredPrompt = null;
+            });
+        };
+    });
+
+    window.addEventListener('appinstalled', () => {
+        console.log('App installed successfully');
+        installBtn.style.display = 'none';
+        installBanner.style.display = 'none';
+        deferredPrompt = null;
+    });
+
+    // Theme Toggle
+    let isDarkMode = false;
+    const themeToggle = document.getElementById('themeToggle');
+    
+    function toggleTheme() {
+        isDarkMode = !isDarkMode;
+        if (isDarkMode) {
+            document.body.classList.add('dark');
+            themeToggle.innerHTML = '☀️ Light Mode';
+        } else {
+            document.body.classList.remove('dark');
+            themeToggle.innerHTML = '🌙 Dark Mode';
+        }
+        localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+    }
+    
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+        isDarkMode = true;
+        document.body.classList.add('dark');
+        themeToggle.innerHTML = '☀️ Light Mode';
+    }
+    themeToggle.addEventListener('click', toggleTheme);
+
+    // Game Variables
+    let currentMode = "online";
+    let peer = null, connection = null, myPlayerId = null;
+    let actualPeerId = null;
+    let hostDisplayCode = null;
+    
+    let guessHistory = [];
+    
+    const peerConfig = {
+        host: '0.peerjs.com',
+        port: 443,
+        path: '/',
+        secure: true,
+        debug: 0
+    };
+    
+    let gameState = {
+        mySecret: null, mySecretSet: false, opponentSecretSet: false,
+        myTurn: true, gameActive: false, winner: null
+    };
+    
+    let aiModeState = {
+        humanSecret: null, humanSecretSet: false,
+        aiSecret: null, aiSecretSet: false,
+        turn: "human", gameActive: false, winner: null,
+        history: []
+    };
+
+    const onlinePanel = document.getElementById("onlinePanel");
+    const gamePlayArea = document.getElementById("gamePlayArea");
+    const aiPanel = document.getElementById("aiPanel");
+    const connectionStatus = document.getElementById("connectionStatus");
+    const peerIdDisplay = document.getElementById("peerIdDisplay");
+    const joinSection = document.getElementById("joinSection");
+
+    function addToHistory(guess, response, isMyGuess) {
+        const timestamp = new Date().toLocaleTimeString();
+        guessHistory.unshift({
+            guess: guess,
+            response: response,
+            isMyGuess: isMyGuess,
+            time: timestamp
+        });
+        if (guessHistory.length > 20) guessHistory.pop();
+        updateHistoryDisplay();
+    }
+    
+    function updateHistoryDisplay() {
+        const historyList = document.getElementById("historyList");
+        if (!historyList) return;
+        if (guessHistory.length === 0) {
+            historyList.innerHTML = '<li style="text-align: center; color: var(--text-muted);">No guesses yet</li>';
+            return;
+        }
+        historyList.innerHTML = guessHistory.map(item => `
+            <li class="history-item ${item.isMyGuess ? 'my-guess' : 'opponent-guess'}">
+                <span class="guess-number">${item.isMyGuess ? 'You' : 'Opponent'} guessed ${item.guess}</span><br>
+                <small>→ ${item.response}</small>
+                <small style="display: block; font-size: 0.65rem; color: var(--text-muted);">${item.time}</small>
+            </li>
+        `).join('');
+    }
+    
+    function clearHistory() {
+        guessHistory = [];
+        updateHistoryDisplay();
+    }
+    
+    function addToAIHistory(guess, response, isHuman) {
+        aiModeState.history.unshift({
+            guess: guess,
+            response: response,
+            isHuman: isHuman,
+            time: new Date().toLocaleTimeString()
+        });
+        if (aiModeState.history.length > 20) aiModeState.history.pop();
+        updateAIHistoryDisplay();
+    }
+    
+    function updateAIHistoryDisplay() {
+        const historyList = document.getElementById("aiHistoryList");
+        if (!historyList) return;
+        if (aiModeState.history.length === 0) {
+            historyList.innerHTML = '<li style="text-align: center; color: var(--text-muted);">No guesses yet</li>';
+            return;
+        }
+        historyList.innerHTML = aiModeState.history.map(item => `
+            <li class="history-item ${item.isHuman ? 'my-guess' : 'opponent-guess'}">
+                <span class="guess-number">${item.isHuman ? 'You' : 'Computer'} guessed ${item.guess}</span><br>
+                <small>→ ${item.response}</small>
+                <small style="display: block; font-size: 0.65rem; color: var(--text-muted);">${item.time}</small>
+            </li>
+        `).join('');
+    }
+    
+    function clearAIHistory() {
+        aiModeState.history = [];
+        updateAIHistoryDisplay();
+    }
+
+    function generateShortCode(length = 8) {
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        let result = '';
+        for (let i = 0; i < length; i++) {
+            result += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return result;
+    }
+
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            const copyMsg = document.createElement('div');
+            copyMsg.textContent = '✓ Copied!';
+            copyMsg.style.position = 'fixed';
+            copyMsg.style.bottom = '20px';
+            copyMsg.style.left = '50%';
+            copyMsg.style.transform = 'translateX(-50%)';
+            copyMsg.style.background = 'var(--accent)';
+            copyMsg.style.color = '#fff';
+            copyMsg.style.padding = '8px 20px';
+            copyMsg.style.borderRadius = '30px';
+            copyMsg.style.zIndex = '9999';
+            document.body.appendChild(copyMsg);
+            setTimeout(() => copyMsg.remove(), 1500);
+        });
+    }
+
+    function switchMode(mode) {
+        currentMode = mode;
+        document.querySelectorAll(".mode-btn").forEach(btn => {
+            if(btn.dataset.mode === mode) btn.classList.add("active");
+            else btn.classList.remove("active");
+        });
+        
+        if (mode === "online") {
+            onlinePanel.style.display = "block";
+            gamePlayArea.classList.remove("active");
+            aiPanel.classList.remove("active");
+            if (peer) { try { peer.destroy(); } catch(e) {} peer = null; connection = null; }
+            resetOnlineUI();
+        } else {
+            onlinePanel.style.display = "none";
+            gamePlayArea.classList.remove("active");
+            aiPanel.classList.add("active");
+            resetAIGame();
+        }
+    }
+
+    function resetOnlineUI() {
+        gameState = {
+            mySecret: null, mySecretSet: false, opponentSecretSet: false,
+            myTurn: true, gameActive: false, winner: null
+        };
+        guessHistory = [];
+        updateHistoryDisplay();
+        myPlayerId = null;
+        actualPeerId = null;
+        hostDisplayCode = null;
+        connectionStatus.innerText = "🔌 Not connected. Create or join a game.";
+        connectionStatus.style.background = "var(--bg-primary)";
+        peerIdDisplay.style.display = "none";
+        joinSection.style.display = "none";
+        document.getElementById("mySecretArea").style.display = "block";
+        document.getElementById("mySecretDisplay").style.display = "none";
+        document.getElementById("mySecretInput").value = "";
+        document.getElementById("guessInput").disabled = true;
+        document.getElementById("guessBtn").disabled = true;
+        document.getElementById("myFeedback").innerText = "Waiting for game setup...";
+        document.getElementById("opponentFeedback").innerText = "Waiting for opponent...";
+        document.getElementById("gameStatusMsg").innerText = "⚡ Connect with another player to start!";
+        document.getElementById("opponentView").querySelector(".secret-display").innerHTML = "❓ Not set";
+        document.getElementById("myPlayerView").classList.remove("my-turn");
+    }
+
+    function sendGameData(data) {
+        if (connection && connection.open) connection.send(JSON.stringify(data));
+    }
+
+    function setMySecret() {
+        if (gameState.mySecretSet) return;
+        const secret = parseInt(document.getElementById("mySecretInput").value);
+        if (isNaN(secret) || secret < 1 || secret > 100) {
+            document.getElementById("myFeedback").innerText = "Secret must be 1-100!";
+            return;
+        }
+        gameState.mySecret = secret;
+        gameState.mySecretSet = true;
+        document.getElementById("mySecretArea").style.display = "none";
+        document.getElementById("mySecretDisplay").style.display = "block";
+        document.getElementById("myFeedback").innerText = "✅ Secret saved! Waiting for opponent.";
+        sendGameData({ type: "secretSet", secret: secret });
+        updateOnlineUI();
+    }
+
+    function opponentSetSecret() {
+        gameState.opponentSecretSet = true;
+        document.getElementById("opponentView").querySelector(".secret-display").innerHTML = "●●●●● (set)";
+        updateOnlineUI();
+    }
+
+    function makeGuess() {
+        if (!gameState.gameActive || gameState.winner || !gameState.myTurn) return;
+        const guessVal = parseInt(document.getElementById("guessInput").value);
+        if (isNaN(guessVal) || guessVal < 1 || guessVal > 100) {
+            document.getElementById("myFeedback").innerText = "Enter 1-100!";
+            return;
+        }
+        sendGameData({ type: "guess", guess: guessVal, from: myPlayerId });
+        document.getElementById("myFeedback").innerText = `📤 You guessed ${guessVal}. Waiting...`;
+        document.getElementById("guessInput").value = "";
+        document.getElementById("guessInput").disabled = true;
+        document.getElementById("guessBtn").disabled = true;
+        gameState.myTurn = false;
+        updateOnlineUI();
+    }
+
+    function processGuess(guessValue, fromPlayer) {
+        if (!gameState.mySecretSet) return;
+        let response = "", isCorrect = false;
+        if (guessValue === gameState.mySecret) {
+            response = "✅ CORRECT! Game Over";
+            isCorrect = true;
+            gameState.winner = fromPlayer === 1 ? 1 : 2;
+            gameState.gameActive = false;
+            addToHistory(guessValue, "CORRECT! You won!", false);
+        } else if (guessValue > gameState.mySecret) {
+            response = "🔽 LOW (your number is lower)";
+            addToHistory(guessValue, "LOW - Guess too high", false);
+        } else {
+            response = "🔼 UP (your number is higher)";
+            addToHistory(guessValue, "UP - Guess too low", false);
+        }
+        sendGameData({ type: "guessResponse", response: response, isCorrect: isCorrect, guessValue: guessValue });
+        if (!isCorrect) {
+            gameState.myTurn = true;
+            updateOnlineUI();
+        } else {
+            updateOnlineUI();
+        }
+    }
+
+    function processGuessResponse(response, isCorrect, guessValue) {
+        if (isCorrect) {
+            gameState.winner = myPlayerId;
+            gameState.gameActive = false;
+            document.getElementById("myFeedback").innerHTML = `🎉 YOU WIN! Guessed ${guessValue}! 🎉`;
+            addToHistory(guessValue, "✅ CORRECT! You won!", true);
+        } else {
+            document.getElementById("myFeedback").innerHTML = `Opponent says: ${response}. Their turn.`;
+            addToHistory(guessValue, response, true);
+            gameState.myTurn = false;
+        }
+        updateOnlineUI();
+    }
+
+    function updateOnlineUI() {
+        if (!gameState.gameActive && !gameState.winner && gameState.mySecretSet && gameState.opponentSecretSet) {
+            gameState.gameActive = true;
+            gameState.myTurn = (myPlayerId === 1);
+        }
+        if (gameState.gameActive && !gameState.winner) {
+            if (gameState.myTurn) {
+                document.getElementById("myPlayerView").classList.add("my-turn");
+                document.getElementById("guessInput").disabled = false;
+                document.getElementById("guessBtn").disabled = false;
+                document.getElementById("gameStatusMsg").innerHTML = "🎲 YOUR TURN! Guess opponent's number";
+            } else {
+                document.getElementById("myPlayerView").classList.remove("my-turn");
+                document.getElementById("guessInput").disabled = true;
+                document.getElementById("guessBtn").disabled = true;
+                document.getElementById("gameStatusMsg").innerHTML = "⏳ Opponent's turn. Wait...";
+            }
+        } else if (gameState.winner) {
+            document.getElementById("gameStatusMsg").innerHTML = gameState.winner === myPlayerId ? "🏆 YOU WIN! 🏆" : "😭 OPPONENT WINS!";
+            document.getElementById("guessInput").disabled = true;
+            document.getElementById("guessBtn").disabled = true;
+        }
+    }
+
+    function initAsHost() {
+        connectionStatus.innerText = "🔄 Creating game... Please wait";
+        const gameCode = generateShortCode(8);
+        hostDisplayCode = gameCode;
+        peerIdDisplay.style.display = "block";
+        peerIdDisplay.innerHTML = `
+            <div style="font-size: 1rem; margin-bottom: 8px;">🎮 GAME CODE</div>
+            <div class="game-code-display" onclick="copyToClipboard('${gameCode}')">${gameCode}</div>
+            <div style="font-size: 0.75rem; margin-top: 8px;">👆 Click code to copy</div>
+            <div style="font-size: 0.7rem; margin-top: 5px;">Share this 8-character code with Player 2</div>
+        `;
+        peer = new Peer(gameCode, peerConfig);
+        peer.on('open', (id) => {
+            actualPeerId = id;
+            myPlayerId = 1;
+            peerIdDisplay.innerHTML = `
+                <div style="font-size: 1rem; margin-bottom: 8px;">✅ GAME READY!</div>
+                <div class="game-code-display" onclick="copyToClipboard('${id}')">${id}</div>
+                <div style="font-size: 0.8rem; margin-top: 8px; color: #00aa55;">✓ Server connected</div>
+            `;
+            connectionStatus.innerText = "✅ Host ready! Share the 8-character code above.";
+            joinSection.style.display = "none";
+            peer.on('connection', (conn) => {
+                connection = conn;
+                setupConnection(conn);
+                connectionStatus.innerText = "🎉 Player 2 connected! Set your secret numbers.";
+            });
+        });
+        peer.on('error', (err) => {
+            if (err.type === 'unavailable-id') {
+                const newCode = generateShortCode(8);
+                peer = new Peer(newCode, peerConfig);
+                peer.on('open', (id) => {
+                    peerIdDisplay.innerHTML = `<div class="game-code-display" onclick="copyToClipboard('${id}')">${id}</div>`;
+                    connectionStatus.innerText = "✅ Host ready!";
+                });
+            } else {
+                connectionStatus.innerText = "❌ Error: " + err.type + ". Refresh and try again.";
+            }
+        });
+    }
+
+    function joinAsGuest() {
+        let remoteCode = document.getElementById("remotePeerId").value.trim().toUpperCase();
+        if (!remoteCode) {
+            connectionStatus.innerText = "❌ Please enter game code!";
+            return;
+        }
+        if (!/^[A-Z0-9]{8}$/.test(remoteCode)) {
+            connectionStatus.innerText = "❌ Invalid! Must be 8 characters (letters/numbers)";
+            return;
+        }
+        connectionStatus.innerText = "🔄 Connecting to: " + remoteCode;
+        myPlayerId = 2;
+        peer = new Peer(peerConfig);
+        peer.on('open', () => {
+            const conn = peer.connect(remoteCode);
+            connection = conn;
+            setupConnection(conn);
+            setTimeout(() => {
+                if (!connection || !connection.open) {
+                    connectionStatus.innerText = "❌ Timeout. Check code: " + remoteCode;
+                }
+            }, 10000);
+        });
+        peer.on('error', () => {
+            connectionStatus.innerText = "❌ Cannot connect to '" + remoteCode + "'. Check the code.";
+        });
+    }
+
+    function setupConnection(conn) {
+        conn.on('open', () => {
+            connectionStatus.innerText = "✅ Connected! Game ready.";
+            onlinePanel.style.display = "none";
+            gamePlayArea.classList.add("active");
+            document.getElementById("myPlayerTitle").innerHTML = myPlayerId === 1 ? "👑 PLAYER 1 (You)" : "🎭 PLAYER 2 (You)";
+            document.getElementById("opponentTitle").innerHTML = myPlayerId === 1 ? "🎭 PLAYER 2 (Opponent)" : "👑 PLAYER 1 (Opponent)";
+            updateOnlineUI();
+        });
+        conn.on('data', (data) => {
+            try {
+                const msg = JSON.parse(data);
+                if (msg.type === "secretSet") opponentSetSecret();
+                else if (msg.type === "guess") processGuess(msg.guess, msg.from);
+                else if (msg.type === "guessResponse") processGuessResponse(msg.response, msg.isCorrect, msg.guessValue);
+                else if (msg.type === "reset") resetOnlineGame();
+            } catch(e) {}
+        });
+        conn.on('close', () => {
+            connectionStatus.innerText = "⚠️ Game disconnected! Refresh to reconnect.";
+        });
+    }
+
+    function resetOnlineGame() {
+        if (connection && connection.open) sendGameData({ type: "reset" });
+        resetOnlineUI();
+    }
+
+    function resetAIGame() {
+        aiModeState = {
+            humanSecret: null, humanSecretSet: false,
+            aiSecret: Math.floor(Math.random() * 100) + 1, aiSecretSet: true,
+            turn: "human", gameActive: false, winner: null,
+            history: []
+        };
+        updateAIHistoryDisplay();
+        document.getElementById("aiSecretDisplay").style.display = "none";
+        document.getElementById("aiSecretInput").value = "";
+        document.getElementById("aiSecretInput").disabled = false;
+        document.getElementById("aiSetSecret").disabled = false;
+        document.getElementById("aiGuessInput").disabled = true;
+        document.getElementById("aiGuessBtn").disabled = true;
+        document.getElementById("aiMyFeedback").innerHTML = "Set your secret to start!";
+        document.getElementById("aiOpponentFeedback").innerHTML = "Computer ready";
+        document.getElementById("aiStatusMsg").innerHTML = "🎮 Set your secret number (1-100)";
+    }
+
+    function setHumanSecretAI() {
+        if (aiModeState.humanSecretSet) return;
+        const val = parseInt(document.getElementById("aiSecretInput").value);
+        if (isNaN(val) || val < 1 || val > 100) {
+            document.getElementById("aiMyFeedback").innerHTML = "Secret must be 1-100!";
+            return;
+        }
+        aiModeState.humanSecret = val;
+        aiModeState.humanSecretSet = true;
+        aiModeState.gameActive = true;
+        aiModeState.turn = "human";
+        document.getElementById("aiSecretDisplay").style.display = "block";
+        document.getElementById("aiSecretInput").disabled = true;
+        document.getElementById("aiSetSecret").disabled = true;
+        document.getElementById("aiGuessInput").disabled = false;
+        document.getElementById("aiGuessBtn").disabled = false;
+        document.getElementById("aiStatusMsg").innerHTML = "🎲 YOUR TURN! Guess computer's number";
+    }
+
+    function humanGuessAI() {
+        if (!aiModeState.gameActive || aiModeState.winner || aiModeState.turn !== "human") return;
+        const guess = parseInt(document.getElementById("aiGuessInput").value);
+        if (isNaN(guess) || guess < 1 || guess > 100) {
+            document.getElementById("aiMyFeedback").innerHTML = "Enter 1-100!";
+            return;
+        }
+        if (guess === aiModeState.aiSecret) {
+            aiModeState.winner = "human";
+            aiModeState.gameActive = false;
+            document.getElementById("aiMyFeedback").innerHTML = `🎉 CORRECT! YOU WIN! 🎉`;
+            document.getElementById("aiStatusMsg").innerHTML = "🏆 YOU WIN!";
+            document.getElementById("aiGuessInput").disabled = true;
+            document.getElementById("aiGuessBtn").disabled = true;
+            addToAIHistory(guess, "✅ CORRECT! You won!", true);
+            return;
+        }
+        const hint = guess > aiModeState.aiSecret ? "LOW (my number is lower)" : "UP (my number is higher)";
+        document.getElementById("aiMyFeedback").innerHTML = `Computer says: ${hint}. Computer's turn.`;
+        addToAIHistory(guess, hint, true);
+        aiModeState.turn = "computer";
+        document.getElementById("aiGuessInput").disabled = true;
+        document.getElementById("aiGuessBtn").disabled = true;
+        setTimeout(computerGuessAI, 800);
+    }
+
+    function computerGuessAI() {
+        if (!aiModeState.gameActive || aiModeState.winner || aiModeState.turn !== "computer") return;
+        const guess = Math.floor(Math.random() * 100) + 1;
+        if (guess === aiModeState.humanSecret) {
+            aiModeState.winner = "computer";
+            aiModeState.gameActive = false;
+            document.getElementById("aiOpponentFeedback").innerHTML = `💀 Computer guessed ${guess}! YOU LOSE 💀`;
+            document.getElementById("aiStatusMsg").innerHTML = "🤖 COMPUTER WINS!";
+            addToAIHistory(guess, "✅ CORRECT! Computer won!", false);
+            return;
+        }
+        const feedback = guess > aiModeState.humanSecret ? 
+            `🤖 Computer guessed ${guess} → You say "LOW"` : 
+            `🤖 Computer guessed ${guess} → You say "UP"`;
+        document.getElementById("aiOpponentFeedback").innerHTML = feedback;
+        addToAIHistory(guess, guess > aiModeState.humanSecret ? "LOW (your number is lower)" : "UP (your number is higher)", false);
+        aiModeState.turn = "human";
+        document.getElementById("aiGuessInput").disabled = false;
+        document.getElementById("aiGuessBtn").disabled = false;
+        document.getElementById("aiGuessInput").value = "";
+        document.getElementById("aiMyFeedback").innerHTML = "Your turn! Guess computer's number.";
+    }
+
+    window.copyToClipboard = copyToClipboard;
+
+    // Event Listeners
+    document.getElementById("createGameBtn").onclick = initAsHost;
+    document.getElementById("joinGameBtn").onclick = () => { 
+        joinSection.style.display = "block";
+        peerIdDisplay.style.display = "none";
+        document.getElementById("remotePeerId").focus();
+    };
+    document.getElementById("connectBtn").onclick = joinAsGuest;
+    document.getElementById("setSecretBtn").onclick = setMySecret;
+    document.getElementById("guessBtn").onclick = makeGuess;
+    document.getElementById("resetOnlineGame").onclick = resetOnlineGame;
+    document.getElementById("aiSetSecret").onclick = setHumanSecretAI;
+    document.getElementById("aiGuessBtn").onclick = humanGuessAI;
+    document.getElementById("resetAiGame").onclick = resetAIGame;
+    document.getElementById("clearHistoryBtn").onclick = clearHistory;
+    document.getElementById("clearAiHistoryBtn").onclick = clearAIHistory;
+    
+    document.getElementById("remotePeerId").addEventListener("keypress", (e) => {
+        if (e.key === "Enter") joinAsGuest();
+    });
+    document.getElementById("guessInput").addEventListener("keypress", (e) => {
+        if (e.key === "Enter" && !document.getElementById("guessBtn").disabled) makeGuess();
+    });
+    document.getElementById("mySecretInput").addEventListener("keypress", (e) => {
+        if (e.key === "Enter") setMySecret();
+    });
+    document.getElementById("aiSecretInput").addEventListener("keypress", (e) => {
+        if (e.key === "Enter") setHumanSecretAI();
+    });
+    document.getElementById("aiGuessInput").addEventListener("keypress", (e) => {
+        if (e.key === "Enter" && !document.getElementById("aiGuessBtn").disabled) humanGuessAI();
+    });
+    
+    document.querySelectorAll(".mode-btn").forEach(btn => {
+        btn.onclick = () => switchMode(btn.dataset.mode);
+    });
+    
+    switchMode("online");
+</script>
+</body>
+</html>
